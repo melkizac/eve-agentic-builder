@@ -10,6 +10,7 @@ instruction drafting, and static validation.
 - Durable embedded operational memory with approval-gated changes for local use.
 - Automatic PostgreSQL selection when a production `DATABASE_URL` is supplied.
 - A source-grounded Markdown Wiki exposed through three read-only tools.
+- An optional coordinator-led specialist team generated from a plain-language description.
 - Generated safety instructions, evals, and structural validators.
 - Shared pnpm dependency graphs so hundreds of projects do not duplicate package trees.
 
@@ -19,6 +20,14 @@ instruction drafting, and static validation.
 - Eve's `chatgpt()` model uses the local Codex login without a separate model key.
 - The local development identity is permitted only outside production.
 - pnpm's global virtual store keeps project-level dependency links small and is disabled automatically in CI.
+
+## Multi-agent defaults
+
+- Team communication uses bounded parent-to-specialist task messages and returned results.
+- Independent specialist work may run in parallel.
+- Durable operational memory remains coordinator-owned and human approval-gated.
+- Specialists receive no memory extension, shell, or runtime file-write capability by default.
+- Persistent specialist conversations are generated only when explicitly requested because the Eve feature is experimental.
 
 ## Storage safety
 

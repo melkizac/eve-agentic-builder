@@ -15,7 +15,7 @@ from pathlib import Path
 SCRIPT_ROOT = Path(__file__).resolve().parent
 
 
-def run_python(script: str, arguments: list[str]) -> None:
+def run_python(script: str, arguments: list[str]) -> str:
     result = subprocess.run(
         [sys.executable, str(SCRIPT_ROOT / script), *arguments],
         capture_output=True,
@@ -27,6 +27,7 @@ def run_python(script: str, arguments: list[str]) -> None:
         if result.stderr:
             print(result.stderr, file=sys.stderr, end="")
         raise SystemExit(result.returncode)
+    return result.stdout
 
 
 def install_dependencies(target: Path) -> None:
@@ -52,6 +53,10 @@ def main() -> None:
     )
     parser.add_argument("--project-id", help="Stable durable-memory project scope")
     parser.add_argument(
+        "--team-file",
+        help="JSON coordinator and specialist specification prepared from the user's description",
+    )
+    parser.add_argument(
         "--skip-install",
         action="store_true",
         help="Create files without running pnpm install",
@@ -73,6 +78,13 @@ def main() -> None:
 
     run_python("create_eve_memory_agent.py", create_arguments)
     run_python("add_llm_wiki_to_eve_agent.py", ["--target", str(target)])
+    team = None
+    if args.team_file:
+        team_output = run_python(
+            "add_eve_agent_team.py",
+            ["--target", str(target), "--team-file", str(Path(args.team_file).expanduser().resolve())],
+        )
+        team = json.loads(team_output)
     if not args.skip_install:
         install_dependencies(target)
 
@@ -90,6 +102,7 @@ def main() -> None:
                     "operationalMemory": "Embedded PGlite locally; PostgreSQL in production",
                     "knowledge": "Read-only source-grounded LLM Wiki",
                 },
+                "team": team,
                 "runtimeSafety": {
                     "wikiReadOnly": True,
                     "bashDisabled": True,

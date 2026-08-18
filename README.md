@@ -1,7 +1,8 @@
 # Eve Agentic Builder
 
 One GitHub repository, one installable Codex plugin, and one beginner-facing
-skill for creating complete [Vercel Eve](https://github.com/vercel/eve) agents.
+skill for creating complete [Vercel Eve](https://github.com/vercel/eve) agents
+and coordinator-led specialist teams.
 
 ```text
 $eve
@@ -14,6 +15,8 @@ The skill creates and validates:
 - automatic PostgreSQL memory for production when `DATABASE_URL` is supplied;
 - local model access through the user's existing Codex login;
 - a source-grounded, read-only LLM Wiki;
+- optional multi-agent teams generated from a plain-language description;
+- bounded coordinator-to-specialist communication and coordinator-owned memory;
 - nine memory and Wiki tools;
 - safety instructions, evals, and structural validators;
 - installed Node.js project dependencies.
@@ -37,6 +40,13 @@ The beginner can also supply the purpose immediately:
 
 ```text
 Use $eve to create a customer-support agent.
+```
+
+Or describe a team without learning Eve configuration:
+
+```text
+Use $eve to create a course-production team with a coordinator, learning
+designer, content writer, learner-guide writer, and slide-deck specialist.
 ```
 
 `$eve` is the reliable explicit invocation. A bare `eve` request may activate the
@@ -78,6 +88,8 @@ User invokes $eve
   -> configures model access through the existing Codex login
   -> installs the read-only LLM Wiki
   -> writes agent-specific instructions
+  -> generates coordinator and specialist roles when a team is requested
+  -> applies bounded communication and memory-access rules
   -> installs dependencies
   -> shares dependency graphs through pnpm's global virtual store
   -> builds and validates all nine tools
@@ -85,8 +97,8 @@ User invokes $eve
 ```
 
 For a new or empty project, `$eve` runs the integrated initializer. For an
-existing Eve project, the same skill detects and adds missing memory or Wiki
-layers without exposing separate specialist skills to the beginner.
+existing Eve project, the same skill detects and adds missing team, memory, or
+Wiki layers without exposing separate specialist skills to the beginner.
 
 ## Repository architecture
 
@@ -115,6 +127,28 @@ eve-memory-agent-builder/
 The public workflow is one skill. Its internal scripts remain separate so each
 layer stays testable and maintainable.
 
+## Multi-agent teams
+
+When a user describes multiple roles, `$eve` converts that description into a
+team manifest and generates:
+
+- one coordinator with the durable operational-memory tools;
+- one declared Eve subagent per specialist role;
+- explicit routing, handoff, verification, and parallel-work rules;
+- specialist boundaries that disable shell and runtime file writes;
+- delegation, memory-boundary, and optional parallel-handoff evals;
+- a deterministic team validator.
+
+Task-based communication is the safe default: the coordinator sends each
+specialist a complete bounded task and receives its result. Persistent child
+sessions are enabled only when the user explicitly requests ongoing iterative
+communication because Eve currently marks that capability experimental.
+
+Specialists never receive an unrestricted operational-memory dump or mount the
+coordinator's memory extension. The coordinator decides which confirmed facts
+are relevant, sends only those facts, verifies returned recommendations, and
+retains all human approval gates for memory changes.
+
 ## Internal creation flow
 
 `scripts/create_eve_memory_wiki_agent.py` is the one-command orchestrator:
@@ -131,6 +165,9 @@ create_eve_memory_wiki_agent.py
 
 The skill then runs the memory and Wiki validators and the Eve build/discovery
 commands.
+
+When a team description is supplied, the integrated initializer also calls
+`add_eve_agent_team.py`; the skill then runs `validate_eve_agent_team.py`.
 
 ## Three distinct memory layers
 
@@ -211,6 +248,8 @@ The plugin automates:
 - memory and Wiki integration;
 - project dependency installation;
 - agent instruction drafting;
+- coordinator and specialist-team generation;
+- communication and memory-boundary generation;
 - compilation and structural validation;
 - eval discovery and development startup guidance.
 
@@ -243,7 +282,7 @@ behavior remains separately validated.
 
 ## Validation contract
 
-Release `0.6.1` targets `eve@0.39.0`, Node.js 24, and pnpm 10.12.1 or newer. A release is ready when:
+Release `0.7.0` targets `eve@0.39.0`, Node.js 24, and pnpm 10.12.1 or newer. A release is ready when:
 
 - the plugin and the single `$eve` skill validate;
 - a fresh agent is created without running `eve init`;
@@ -252,6 +291,8 @@ Release `0.6.1` targets `eve@0.39.0`, Node.js 24, and pnpm 10.12.1 or newer. A r
 - `eve info` reports nine tools and zero diagnostics;
 - both structural validators pass;
 - all five memory and Wiki evals are discovered;
+- a generated team exposes every declared specialist with zero Eve diagnostics;
+- the team validator passes and team delegation/memory-boundary evals are discovered;
 - the embedded-memory persistence and transaction test passes;
 - `pnpm run doctor` reports the local model and memory backend in plain language;
 - `pnpm run storage` confirms shared dependency links without traversing the global store;
