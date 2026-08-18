@@ -55,7 +55,7 @@ Prerequisites for generated projects:
 Install from this GitHub marketplace:
 
 ```powershell
-codex plugin marketplace add melkizac/eve-memory-agent-builder
+codex plugin marketplace add melkizac/eve-agentic-builder
 codex plugin add eve-memory-agent-builder@eve-memory-agents
 ```
 
@@ -194,7 +194,7 @@ behavior as untested.
 
 ## Validation contract
 
-Release `0.5.0` targets `eve@0.39.0` and Node.js 24. A release is ready when:
+Release `0.5.1` targets `eve@0.39.0` and Node.js 24. A release is ready when:
 
 - the plugin and the single `$eve` skill validate;
 - a fresh agent is created without running `eve init`;
@@ -214,7 +214,7 @@ session tests require private credentials and are reported separately.
   runtime.
 - [Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
   supplies the Wiki design inspiration.
-- [melkizac/eve-memory-agent-builder](https://github.com/melkizac/eve-memory-agent-builder)
+- [melkizac/eve-agentic-builder](https://github.com/melkizac/eve-agentic-builder)
   owns the Codex plugin, `$eve` workflow, operational memory extension, Wiki
   integration, templates, scripts, and validation.
 

@@ -1,13 +1,13 @@
 {
   "name": "eve-memory-agent-builder",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Create a complete Eve memory and Wiki agent through one beginner-facing skill.",
   "author": {
     "name": "melkizac",
     "url": "https://github.com/melkizac"
   },
-  "homepage": "https://github.com/melkizac/eve-memory-agent-builder#readme",
-  "repository": "https://github.com/melkizac/eve-memory-agent-builder",
+  "homepage": "https://github.com/melkizac/eve-agentic-builder#readme",
+  "repository": "https://github.com/melkizac/eve-agentic-builder",
   "license": "Apache-2.0",
   "keywords": ["eve", "agents", "memory", "llm-wiki", "codex", "postgresql"],
   "skills": "./skills/",
