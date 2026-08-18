@@ -1,6 +1,6 @@
 {
   "name": "eve-memory-agent-builder",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Create, extend, and audit real eve agents with tenant-scoped durable memory.",
   "author": {
     "name": "melkizac",
@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "Eve Memory Agent Builder",
     "shortDescription": "Build eve agents with isolated durable memory.",
-    "longDescription": "Create new eve agents, add the bundled PostgreSQL memory extension to existing agents, and audit recall, provenance, correction, deletion, and tenant isolation.",
+    "longDescription": "Create complete pinned eve projects from an integrated starter, add the bundled PostgreSQL memory extension to existing agents, and audit recall, provenance, correction, deletion, and tenant isolation.",
     "developerName": "Melverick",
     "category": "Developer Tools",
     "capabilities": ["Create", "Write", "Audit"],

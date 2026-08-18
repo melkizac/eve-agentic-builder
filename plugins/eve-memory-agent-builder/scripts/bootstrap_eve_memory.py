@@ -175,27 +175,25 @@ EVE_MEMORY_DEV_USER=local-user
         path.write_text(existing + separator + block, encoding="utf-8", newline="\n")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--target", required=True, help="Existing eve project root")
-    parser.add_argument("--project-id", help="Stable project memory scope")
-    parser.add_argument("--force", action="store_true", help="Replace generated memory files")
-    args = parser.parse_args()
-
-    target = Path(args.target).expanduser().resolve()
+def bootstrap_project(target: Path, project_id: str | None = None, force: bool = False) -> dict:
+    target = target.expanduser().resolve()
     package_json = target / "package.json"
     agent_dir = target / "agent"
     if not package_json.is_file() or not agent_dir.is_dir():
         raise SystemExit(f"Not an eve project: expected package.json and agent/ under {target}")
 
     payload = json.loads(package_json.read_text(encoding="utf-8"))
-    project_id = args.project_id or str(payload.get("name") or target.name)
+    project_id = project_id or str(payload.get("name") or target.name)
     destination = target / "packages" / "eve-memory"
     if destination.exists():
-        if not args.force:
+        if not force:
             raise SystemExit(f"Memory extension already exists: {destination}. Use --force intentionally.")
         shutil.rmtree(destination)
-    shutil.copytree(TEMPLATE_ROOT, destination)
+    shutil.copytree(
+        TEMPLATE_ROOT,
+        destination,
+        ignore=shutil.ignore_patterns("node_modules", ".git", ".DS_Store", "*.tsbuildinfo"),
+    )
 
     update_package_json(package_json)
     update_pnpm_workspace(target / "pnpm-workspace.yaml")
@@ -209,12 +207,12 @@ def main() -> None:
         target / "evals" / "memory" / "approval-gates.eval.ts": APPROVAL_EVAL,
     }
     for path, content in files.items():
-        if write_new(path, content, args.force):
+        if write_new(path, content, force):
             generated.append(str(path))
     update_env_example(target / ".env.example", project_id)
     generated.append(str(target / ".env.example"))
 
-    print(json.dumps({
+    return {
         "target": str(target),
         "projectId": project_id,
         "generated": generated,
@@ -225,7 +223,22 @@ def main() -> None:
             "Run pnpm memory:build",
             "Run pnpm exec eve info"
         ]
-    }, indent=2))
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--target", required=True, help="Existing eve project root")
+    parser.add_argument("--project-id", help="Stable project memory scope")
+    parser.add_argument("--force", action="store_true", help="Replace generated memory files")
+    args = parser.parse_args()
+
+    result = bootstrap_project(
+        target=Path(args.target),
+        project_id=args.project_id,
+        force=args.force,
+    )
+    print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":

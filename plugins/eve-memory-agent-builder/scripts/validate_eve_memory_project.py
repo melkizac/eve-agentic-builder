@@ -10,6 +10,9 @@ from pathlib import Path
 
 REQUIRED = [
     "package.json",
+    "agent/agent.ts",
+    "agent/instructions.md",
+    "agent/channels/eve.ts",
     "agent/extensions/memory.ts",
     "docs/memory-architecture.md",
     "packages/eve-memory/package.json",
@@ -37,6 +40,8 @@ def main() -> None:
     package_path = root / "package.json"
     if package_path.is_file():
         package = json.loads(package_path.read_text(encoding="utf-8"))
+        if package.get("dependencies", {}).get("eve") != "0.39.0":
+            failures.append("package.json must pin eve to 0.39.0")
         if package.get("dependencies", {}).get("@local/eve-memory") != "workspace:*":
             failures.append("package.json dependency @local/eve-memory is missing or incorrect")
 

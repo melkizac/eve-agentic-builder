@@ -12,30 +12,30 @@ the folder-only Eve-inspired scaffold for this workflow.
 
 1. Inspect the destination, existing instructions, package manager, runtime, and Git status.
 2. Read `references/architecture.md`. On Windows, also read `references/windows-runtime.md`.
-3. Confirm the current npm `eve` version and Node engine. The bundled extension targets
-   `eve@0.39.0` and Node 24. If npm reports a newer incompatible eve release, update and
-   validate the bundled extension before generating the project; do not silently mix APIs.
+3. Confirm Node 24 or newer and pnpm are available. The integrated starter pins
+   `eve@0.39.0`; do not replace it with `latest` during project creation.
 4. On Windows, run the live eve project from Ubuntu/WSL or Linux and create it in the
    Linux filesystem. Codex may orchestrate this from the Windows app.
-5. Scaffold with an explicit target so a non-interactive run cannot enter a location prompt:
+5. Create the complete Eve and memory project from the bundled integrated starter:
 
    ```bash
-   pnpm dlx eve@0.39.0 init <target> --model <provider/model>
+   python3 <plugin-root>/scripts/create_eve_memory_agent.py \
+     --target <target> --name <agent-name> --model <provider/model>
    ```
 
-6. Run the plugin bootstrap script against the new project:
-
-   ```bash
-   python3 <plugin-root>/scripts/bootstrap_eve_memory.py --target <target>
-   ```
-
+   The destination must be new or empty except for `.git`. Do not run `eve init`; the
+   starter already includes the pinned Eve project contract, built-in HTTP channel,
+   memory workspace, evals, and install step.
+6. Replace the placeholder in `agent/instructions.md` with the user's concrete purpose,
+   operating boundaries, and success criteria.
 7. Configure `DATABASE_URL` outside version control. Configure route authentication so
    `ctx.session.auth.current` is a user principal with a verified string `tenantId`.
    Development fallback scope is permitted only outside production and only when explicitly enabled.
-8. Install and verify:
+8. Verify:
 
    ```bash
-   pnpm install
+   pnpm typecheck
+   pnpm build
    pnpm memory:typecheck
    pnpm memory:build
    pnpm exec eve info
@@ -49,7 +49,8 @@ the folder-only Eve-inspired scaffold for this workflow.
 
 ## Required result
 
-The project must contain the mounted `@local/eve-memory` workspace package,
+The project must be independently runnable after creation and contain pinned Eve runtime
+dependencies, the built-in HTTP channel, the mounted `@local/eve-memory` workspace package,
 memory architecture contract, event archive, curated memory tools, approval gates, provenance,
 and eval cases. Treat build success as insufficient when live runtime or database
 behavior was not exercised.

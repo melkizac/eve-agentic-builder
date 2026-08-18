@@ -1,6 +1,6 @@
 # eve Memory Agent Builder
 
-An installable Codex plugin for creating, extending, and auditing real
+An installable Codex plugin for creating, extending, and auditing complete
 [Vercel eve](https://github.com/vercel/eve) agents with durable cross-session memory.
 
 The plugin keeps eve's native durable session history as working context and adds a
@@ -33,6 +33,10 @@ codex plugin add eve-memory-agent-builder@eve-memory-agents
 ```
 
 Start a new Codex task after installation so the bundled skills are loaded.
+
+The create skill uses an integrated starter pinned to `eve@0.39.0`. Users do not
+need to run `eve init`; the plugin creates the Eve runtime project, installs the
+memory workspace, installs dependencies, and then guides Codex through validation.
 
 ## Use
 
@@ -87,9 +91,12 @@ Confirmation, correction, and forgetting use eve's durable human-approval flow.
 
 ## Validation status
 
-The initial release was checked against `eve@0.39.0` and Node.js 24:
+Release 0.2.0 was checked against `eve@0.39.0` and Node.js 24:
 
 - plugin and all three skills validated;
+- the one-command integrated initializer created a fresh agent without `eve init`;
+- dependency installation generated the project lockfile;
+- the generated root project passed TypeScript and Eve builds;
 - extension TypeScript and build passed;
 - a generated eve workspace typechecked;
 - `eve info` discovered six tools with zero diagnostics;
@@ -117,6 +124,7 @@ plugins/eve-memory-agent-builder/
   .codex-plugin/plugin.json
   skills/
   scripts/
+  assets/eve-agent-starter/
   assets/eve-memory-extension/
 ```
 
