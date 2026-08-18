@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Eve Memory Wiki Agent"
+  short_description: "Create a complete Eve memory and Wiki agent"
+  default_prompt: "Use $create-eve-memory-wiki-agent to turn this empty project into a complete Eve agent with durable memory and a read-only LLM Wiki."

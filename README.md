@@ -48,6 +48,16 @@ memory workspace, installs dependencies, and then guides Codex through validatio
 
 ## Use
 
+Beginner one-prompt setup (recommended for a new project):
+
+```text
+Use $create-eve-memory-wiki-agent to turn this empty project into a project assistant. Build and validate it, but do not deploy.
+```
+
+Codex creates Eve, operational memory, and the read-only Wiki together. The user
+only needs to describe what the agent should do and provide credentials when live
+database or model testing is required.
+
 Create a new agent:
 
 ```text
@@ -121,9 +131,10 @@ Rebuild or start a new Eve session after Wiki changes.
 
 ## Validation status
 
-Release 0.3.0 was checked against `eve@0.39.0` and Node.js 24:
+Release 0.4.0 was checked against `eve@0.39.0` and Node.js 24:
 
-- plugin and all four skills validated;
+- plugin and all five skills validated;
+- the beginner umbrella skill orchestrated Eve, memory, Wiki, and dependency installation in one command;
 - the one-command integrated initializer created a fresh agent without `eve init`;
 - dependency installation generated the project lockfile;
 - the generated root project passed TypeScript and Eve builds;
