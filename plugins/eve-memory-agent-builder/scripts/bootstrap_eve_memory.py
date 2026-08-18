@@ -146,12 +146,36 @@ def update_package_json(path: Path) -> None:
     payload.setdefault("packageManager", "pnpm@11.19.0")
     dependencies = payload.setdefault("dependencies", {})
     dependencies["@local/eve-memory"] = "workspace:*"
+    dependencies["@electric-sql/pglite"] = "0.5.5"
     scripts = payload.setdefault("scripts", {})
     scripts.setdefault("memory:build", "pnpm --dir packages/eve-memory build")
     scripts.setdefault("memory:typecheck", "pnpm --dir packages/eve-memory typecheck")
     scripts.setdefault("storage", "node scripts/storage.mjs report")
     scripts.setdefault("storage:clean", "node scripts/storage.mjs clean")
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+
+def ensure_pglite_external(path: Path) -> None:
+    source = path.read_text(encoding="utf-8")
+    if '"@electric-sql/pglite"' in source:
+        return
+    if "build:" in source:
+        raise SystemExit(
+            "agent/agent.ts already has custom build settings. Add "
+            '@electric-sql/pglite to build.externalDependencies before continuing.'
+        )
+    anchor = "export default defineAgent({"
+    if anchor not in source:
+        raise SystemExit(
+            "agent/agent.ts does not contain a supported defineAgent configuration."
+        )
+    replacement = (
+        f"{anchor}\n"
+        "  build: {\n"
+        '    externalDependencies: ["@electric-sql/pglite"],\n'
+        "  },"
+    )
+    path.write_text(source.replace(anchor, replacement, 1), encoding="utf-8", newline="\n")
 
 
 def update_pnpm_workspace(path: Path) -> None:
@@ -210,9 +234,10 @@ def bootstrap_project(target: Path, project_id: str | None = None, force: bool =
     payload = json.loads(package_json.read_text(encoding="utf-8"))
     project_id = project_id or str(payload.get("name") or target.name)
     destination = target / "packages" / "eve-memory"
+    if destination.exists() and not force:
+        raise SystemExit(f"Memory extension already exists: {destination}. Use --force intentionally.")
+    ensure_pglite_external(target / "agent/agent.ts")
     if destination.exists():
-        if not force:
-            raise SystemExit(f"Memory extension already exists: {destination}. Use --force intentionally.")
         shutil.rmtree(destination)
     shutil.copytree(
         TEMPLATE_ROOT,

@@ -51,6 +51,8 @@ def main() -> None:
             failures.append("package.json must pin eve to 0.39.0")
         if package.get("dependencies", {}).get("@local/eve-memory") != "workspace:*":
             failures.append("package.json dependency @local/eve-memory is missing or incorrect")
+        if package.get("dependencies", {}).get("@electric-sql/pglite") != "0.5.5":
+            failures.append("package.json must pin @electric-sql/pglite to 0.5.5")
         scripts = package.get("scripts", {})
         for script in ("storage", "storage:clean"):
             if script not in scripts:
@@ -86,6 +88,8 @@ def main() -> None:
             failures.append("agent model template placeholders were not resolved")
         if "chatgpt()" not in source and "model:" not in source:
             failures.append("agent model configuration is missing")
+        if 'externalDependencies: ["@electric-sql/pglite"]' not in source:
+            failures.append("agent must keep @electric-sql/pglite external at runtime")
 
     mount_source = root / "agent/extensions/memory.ts"
     if mount_source.is_file():
@@ -99,7 +103,7 @@ def main() -> None:
     database_source = root / "packages/eve-memory/extension/lib/database.ts"
     if database_source.is_file():
         source = database_source.read_text(encoding="utf-8")
-        for token in ("PGlite", 'process.env.NODE_ENV === "production"', "DATABASE_URL"):
+        for token in ("PGlite", "mkdir", 'process.env.NODE_ENV === "production"', "DATABASE_URL"):
             if token not in source:
                 failures.append(f"memory database adapter omits {token}")
 

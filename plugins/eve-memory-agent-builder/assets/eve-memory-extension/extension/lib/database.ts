@@ -1,3 +1,4 @@
+import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { PGlite, type Transaction } from "@electric-sql/pglite";
@@ -78,6 +79,7 @@ export function selectedMemoryBackend(): "pglite" | "postgres" {
 }
 
 export async function createPGliteDatabase(dataDir: string): Promise<MemoryDatabase> {
+  await mkdir(dataDir, { recursive: true });
   const client = await PGlite.create(dataDir);
   return new PGliteMemoryDatabase(client);
 }
