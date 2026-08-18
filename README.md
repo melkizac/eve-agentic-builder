@@ -1,4 +1,4 @@
-# Eve Memory Agent Builder
+# Eve Agentic Builder
 
 One GitHub repository, one installable Codex plugin, and one beginner-facing
 skill for creating complete [Vercel Eve](https://github.com/vercel/eve) agents.
