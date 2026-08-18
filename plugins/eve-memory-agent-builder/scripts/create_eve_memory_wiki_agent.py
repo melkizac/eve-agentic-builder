@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -32,6 +33,12 @@ def install_dependencies(target: Path) -> None:
     pnpm = shutil.which("pnpm")
     if not pnpm:
         raise SystemExit("pnpm is required but was not found on PATH.")
+    version = subprocess.run(
+        [pnpm, "--version"], capture_output=True, check=True, text=True
+    ).stdout.strip()
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-.+)?", version)
+    if not match or tuple(map(int, match.groups())) < (10, 12, 1):
+        raise SystemExit(f"pnpm 10.12.1 or newer is required; found {version or 'unknown'}.")
     subprocess.run([pnpm, "install"], cwd=target, check=True)
 
 
@@ -88,11 +95,17 @@ def main() -> None:
                     "bashDisabled": True,
                     "writeFileDisabled": True,
                 },
+                "storage": {
+                    "dependencies": "Shared pnpm global virtual store",
+                    "report": "pnpm run storage",
+                    "safeCleanup": "pnpm run storage:clean",
+                },
                 "next": [
                     "Describe the agent in agent/instructions.md",
                     "Add source documents under agent/sandbox/workspace/raw",
                     "Run locally with Codex login and embedded memory",
                     "Set DATABASE_URL and a deployable model only for hosted production",
+                    "Review disk usage with pnpm run storage",
                     "Run validation before pnpm dev",
                 ],
             },

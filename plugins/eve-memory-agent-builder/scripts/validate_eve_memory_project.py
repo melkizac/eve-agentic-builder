@@ -5,17 +5,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 
 REQUIRED = [
     "package.json",
     ".gitignore",
+    "pnpm-workspace.yaml",
     "agent/agent.ts",
     "agent/instructions.md",
     "agent/channels/eve.ts",
     "agent/extensions/memory.ts",
     "scripts/doctor.mjs",
+    "scripts/storage.mjs",
     "docs/memory-architecture.md",
     "packages/eve-memory/package.json",
     "packages/eve-memory/extension/extension.ts",
@@ -48,6 +51,27 @@ def main() -> None:
             failures.append("package.json must pin eve to 0.39.0")
         if package.get("dependencies", {}).get("@local/eve-memory") != "workspace:*":
             failures.append("package.json dependency @local/eve-memory is missing or incorrect")
+        scripts = package.get("scripts", {})
+        for script in ("storage", "storage:clean"):
+            if script not in scripts:
+                failures.append(f"package.json script {script} is missing")
+        manager = str(package.get("packageManager", ""))
+        match = re.fullmatch(r"pnpm@(\d+)\.(\d+)\.(\d+)", manager)
+        if not match or tuple(map(int, match.groups())) < (10, 12, 1):
+            failures.append("packageManager must pin pnpm 10.12.1 or newer")
+
+    workspace_path = root / "pnpm-workspace.yaml"
+    if workspace_path.is_file():
+        workspace = workspace_path.read_text(encoding="utf-8")
+        if not re.search(r"(?m)^enableGlobalVirtualStore:\s*true\s*$", workspace):
+            failures.append("pnpm global virtual store must be enabled")
+
+    storage_path = root / "scripts/storage.mjs"
+    if storage_path.is_file():
+        storage = storage_path.read_text(encoding="utf-8")
+        for token in (".output", ".eve/.workflow-data", ".eve-data", "isSymbolicLink"):
+            if token not in storage:
+                failures.append(f"storage helper omits {token}")
 
     extension_package_path = root / "packages/eve-memory/package.json"
     if extension_package_path.is_file():

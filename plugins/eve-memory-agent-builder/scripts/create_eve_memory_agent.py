@@ -42,6 +42,12 @@ def install_dependencies(target: Path) -> None:
     pnpm = shutil.which("pnpm")
     if not pnpm:
         raise SystemExit("pnpm is required but was not found on PATH.")
+    version = subprocess.run(
+        [pnpm, "--version"], capture_output=True, check=True, text=True
+    ).stdout.strip()
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-.+)?", version)
+    if not match or tuple(map(int, match.groups())) < (10, 12, 1):
+        raise SystemExit(f"pnpm 10.12.1 or newer is required; found {version or 'unknown'}.")
     subprocess.run([pnpm, "install"], cwd=target, check=True)
 
 
@@ -109,11 +115,17 @@ def main() -> None:
                 "eveVersion": package["dependencies"]["eve"],
                 "dependenciesInstalled": not args.skip_install,
                 "memory": memory_result,
+                "storage": {
+                    "dependencies": "Shared pnpm global virtual store",
+                    "report": "pnpm run storage",
+                    "safeCleanup": "pnpm run storage:clean",
+                },
                 "next": [
                     "Replace the placeholder in agent/instructions.md",
                     "Run locally with embedded memory; no DATABASE_URL is needed",
                     "Set DATABASE_URL only before production or multi-user deployment",
                     "Configure verified tenant identity before production",
+                    "Run pnpm run storage to review the disk footprint",
                     "Run pnpm typecheck && pnpm build",
                     "Run pnpm exec eve info and the plugin validator",
                 ],

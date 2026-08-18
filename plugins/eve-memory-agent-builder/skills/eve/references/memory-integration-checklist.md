@@ -6,6 +6,7 @@
 - Keep `@local/eve-memory` as a local file dependency unless the user requests publishing.
 - Verify `.eve-data/` and `.env*` remain ignored except examples.
 - Use embedded PGlite when no `DATABASE_URL` exists in non-production local use.
+- Enable `enableGlobalVirtualStore: true` in `pnpm-workspace.yaml` and preserve the storage helper.
 - Require PostgreSQL and verified tenant identity before production or multi-user claims.
 - Confirm route auth establishes a stable user principal and verified `tenantId`.
 - Confirm every database query scopes namespace, tenant, user, and project before retrieval.

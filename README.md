@@ -17,6 +17,7 @@ The skill creates and validates:
 - nine memory and Wiki tools;
 - safety instructions, evals, and structural validators;
 - installed Node.js project dependencies.
+- a shared pnpm virtual store so repeated projects do not duplicate dependency trees.
 
 ## The beginner experience
 
@@ -50,7 +51,7 @@ Prerequisites for generated projects:
 
 - Codex app or Codex CLI with plugin support;
 - Node.js 24 or newer;
-- pnpm;
+- pnpm 10.12.1 or newer;
 - Ubuntu/WSL or Linux for reliable local Eve execution on Windows.
 
 Local use does not require PostgreSQL, `DATABASE_URL`, an OpenAI API key, or an
@@ -78,6 +79,7 @@ User invokes $eve
   -> installs the read-only LLM Wiki
   -> writes agent-specific instructions
   -> installs dependencies
+  -> shares dependency graphs through pnpm's global virtual store
   -> builds and validates all nine tools
   -> reports credentials still needed and the pnpm dev command
 ```
@@ -178,6 +180,29 @@ and refresh to the Codex CLI and never reads or copies Codex login files.
 PGlite is single-machine local storage. Production mode refuses PGlite and
 requires PostgreSQL plus authenticated tenant identity.
 
+## Disk-space optimization
+
+Generated projects enable pnpm's global virtual store. Each project's
+`node_modules` contains small links while package files and dependency graphs
+are shared from pnpm's central store. CI automatically falls back to pnpm's
+normal isolated layout.
+
+Use the built-in storage commands from a generated project:
+
+```powershell
+pnpm run storage
+pnpm run storage:clean
+```
+
+`storage` reports only local project data and does not follow links into shared
+stores. `storage:clean` removes only the rebuildable `.output` directory. It
+never removes source files, approved PGlite memory under `.eve-data`, Eve's
+durable workflow state under `.eve/.workflow-data`, or dependencies. Stop any
+`eve start` process before running the cleanup command.
+
+Eve automatically prunes old development snapshots. Stop `eve dev` before any
+manual cache maintenance outside the provided cleanup command.
+
 ## What is automated and what still needs access
 
 The plugin automates:
@@ -218,7 +243,7 @@ behavior remains separately validated.
 
 ## Validation contract
 
-Release `0.6.0` targets `eve@0.39.0` and Node.js 24. A release is ready when:
+Release `0.6.1` targets `eve@0.39.0`, Node.js 24, and pnpm 10.12.1 or newer. A release is ready when:
 
 - the plugin and the single `$eve` skill validate;
 - a fresh agent is created without running `eve init`;
@@ -229,6 +254,8 @@ Release `0.6.0` targets `eve@0.39.0` and Node.js 24. A release is ready when:
 - all five memory and Wiki evals are discovered;
 - the embedded-memory persistence and transaction test passes;
 - `pnpm run doctor` reports the local model and memory backend in plain language;
+- `pnpm run storage` confirms shared dependency links without traversing the global store;
+- `pnpm run storage:clean` removes only rebuildable output and preserves sessions and memory;
 - a fresh local project starts without `DATABASE_URL` or an AI Gateway key;
 - the Wiki remains read-only at runtime.
 
