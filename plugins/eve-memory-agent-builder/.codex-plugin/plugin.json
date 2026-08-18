@@ -1,7 +1,7 @@
 {
   "name": "eve-memory-agent-builder",
-  "version": "0.4.0",
-  "description": "Create, extend, and audit Eve agents with durable memory and source-grounded Wikis.",
+  "version": "0.5.0",
+  "description": "Create a complete Eve memory and Wiki agent through one beginner-facing skill.",
   "author": {
     "name": "melkizac",
     "url": "https://github.com/melkizac"
@@ -13,17 +13,11 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Eve Memory Agent Builder",
-    "shortDescription": "Build Eve agents with memory and Wikis.",
-    "longDescription": "Create a complete Eve, PostgreSQL memory, and read-only LLM Wiki agent in one beginner-friendly prompt, or add and audit those layers separately.",
+    "shortDescription": "Build a complete Eve agent with one skill.",
+    "longDescription": "Use one beginner-facing Eve skill to create, complete, maintain, and validate a pinned Eve agent with PostgreSQL operational memory and a source-grounded read-only LLM Wiki.",
     "developerName": "Melverick",
     "category": "Developer Tools",
     "capabilities": ["Create", "Write", "Knowledge", "Audit"],
-    "defaultPrompt": [
-      "Create a complete Eve memory and Wiki agent for me.",
-      "Create an eve agent with durable memory.",
-      "Add durable memory to this eve project.",
-      "Add a read-only LLM Wiki to this eve project.",
-      "Audit this eve agent's memory isolation."
-    ]
+    "defaultPrompt": ["Use $eve to create and validate a complete Eve agent for me."]
   }
 }

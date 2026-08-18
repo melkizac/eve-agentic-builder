@@ -1,7 +1,7 @@
 # Beginner contract
 
 The user should only need to describe the agent they want and invoke
-`$create-eve-memory-wiki-agent`. Codex owns project creation, installation,
+`$eve`. Codex owns project creation, installation,
 instruction drafting, and static validation.
 
 ## What the user receives

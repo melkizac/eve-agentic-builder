@@ -1,108 +1,144 @@
-# eve Memory Agent Builder
+# Eve Memory Agent Builder
 
-An installable Codex plugin for creating, extending, and auditing complete
-[Vercel eve](https://github.com/vercel/eve) agents with durable cross-session memory.
+One GitHub repository, one installable Codex plugin, and one beginner-facing
+skill for creating complete [Vercel Eve](https://github.com/vercel/eve) agents.
 
-The plugin keeps eve's native durable session history as working context and adds a
-PostgreSQL-backed memory extension with:
+```text
+$eve
+```
 
-- tenant, user, project, and namespace isolation derived from authenticated eve context;
-- an append-only runtime event archive;
-- curated proposed and confirmed memories;
-- bounded memory briefing before each turn;
-- search and provenance retrieval;
-- approval-gated confirmation, correction, and forgetting;
-- secret-rejection and untrusted-memory policies;
-- generated recall, approval, and secret-handling evals.
+The skill creates and validates:
 
-An optional LLM Wiki layer adds:
+- a complete Eve runtime pinned to `eve@0.39.0`;
+- PostgreSQL-backed operational memory;
+- a source-grounded, read-only LLM Wiki;
+- nine memory and Wiki tools;
+- safety instructions, evals, and structural validators;
+- installed Node.js project dependencies.
 
-- immutable raw sources and maintained Markdown synthesis;
-- index, source manifest, chronological log, and page templates;
-- bounded `wiki_search`, `wiki_read`, and `wiki_sources` runtime tools;
-- explicit routing between session, operational, and knowledge memory;
-- a read-only Eve runtime boundary enforced by disabling shell and file writes.
+## The beginner experience
 
-## Install in Codex
+After installing the plugin once, start a new Codex task and enter:
 
-Prerequisites:
+```text
+$eve
+```
+
+Codex asks one plain-language question:
+
+```text
+What should this agent help you do?
+```
+
+The beginner can also supply the purpose immediately:
+
+```text
+Use $eve to create a customer-support agent.
+```
+
+`$eve` is the reliable explicit invocation. A bare `eve` request may activate the
+skill through implicit matching, but explicit invocation is recommended.
+
+## One-time plugin installation
+
+A skill cannot install itself before Codex knows it exists. Every new user must
+install the plugin once, then use `$eve` for agent creation.
+
+Prerequisites for generated projects:
 
 - Codex app or Codex CLI with plugin support;
-- Node.js 24 or newer for eve projects;
+- Node.js 24 or newer;
 - pnpm;
 - PostgreSQL for live durable-memory behavior;
-- Ubuntu/WSL or Linux for reliable local eve execution on Windows.
+- Ubuntu/WSL or Linux for reliable local Eve execution on Windows.
 
-Add this repository as a marketplace and install the plugin:
+Install from this GitHub marketplace:
 
 ```powershell
 codex plugin marketplace add melkizac/eve-memory-agent-builder
 codex plugin add eve-memory-agent-builder@eve-memory-agents
 ```
 
-Start a new Codex task after installation so the bundled skills are loaded.
+Start a new Codex task after installation so the bundled skill is loaded.
 
-The create skill uses an integrated starter pinned to `eve@0.39.0`. Users do not
-need to run `eve init`; the plugin creates the Eve runtime project, installs the
-memory workspace, installs dependencies, and then guides Codex through validation.
-
-## Use
-
-Beginner one-prompt setup (recommended for a new project):
+## What `$eve` does
 
 ```text
-Use $create-eve-memory-wiki-agent to turn this empty project into a project assistant. Build and validate it, but do not deploy.
+User invokes $eve
+  -> Codex asks for the agent purpose when needed
+  -> checks the project and local runtime
+  -> creates the pinned Eve project
+  -> installs PostgreSQL operational memory
+  -> installs the read-only LLM Wiki
+  -> writes agent-specific instructions
+  -> installs dependencies
+  -> builds and validates all nine tools
+  -> reports credentials still needed and the pnpm dev command
 ```
 
-Codex creates Eve, operational memory, and the read-only Wiki together. The user
-only needs to describe what the agent should do and provide credentials when live
-database or model testing is required.
+For a new or empty project, `$eve` runs the integrated initializer. For an
+existing Eve project, the same skill detects and adds missing memory or Wiki
+layers without exposing separate specialist skills to the beginner.
 
-Create a new agent:
+## Repository architecture
 
 ```text
-Use $create-eve-memory-agent to create an eve customer-support agent with durable memory.
+eve-memory-agent-builder/
+├── .agents/plugins/marketplace.json
+├── .codex-plugin/plugin.json
+├── skills/
+│   └── eve/
+│       ├── SKILL.md
+│       ├── agents/openai.yaml
+│       └── references/
+├── scripts/
+│   ├── create_eve_memory_wiki_agent.py
+│   ├── create_eve_memory_agent.py
+│   ├── bootstrap_eve_memory.py
+│   ├── add_llm_wiki_to_eve_agent.py
+│   ├── validate_eve_memory_project.py
+│   └── validate_eve_wiki_project.py
+└── assets/
+    ├── eve-agent-starter/
+    ├── eve-memory-extension/
+    └── eve-wiki-layer/
 ```
 
-Add memory to an existing project:
+The public workflow is one skill. Its internal scripts remain separate so each
+layer stays testable and maintainable.
+
+## Internal creation flow
+
+`scripts/create_eve_memory_wiki_agent.py` is the one-command orchestrator:
 
 ```text
-Use $add-memory-to-eve-agent to add durable memory to this eve project.
+create_eve_memory_wiki_agent.py
+├── create_eve_memory_agent.py
+│   ├── copies assets/eve-agent-starter
+│   └── calls bootstrap_eve_memory.py
+│       └── installs assets/eve-memory-extension
+└── add_llm_wiki_to_eve_agent.py
+    └── installs assets/eve-wiki-layer
 ```
 
-Add source-grounded Wiki knowledge:
+The skill then runs the memory and Wiki validators and the Eve build/discovery
+commands.
 
-```text
-Use $add-llm-wiki-to-eve-agent to add a read-only LLM Wiki to this eve memory agent.
-```
+## Three distinct memory layers
 
-Audit an implementation:
+1. **Eve durable session history** holds the current conversation.
+2. **PostgreSQL operational memory** holds approved preferences, decisions,
+   procedures, project facts, relationships, and commitments.
+3. **LLM Wiki knowledge** holds source-backed documents, concepts, entities,
+   comparisons, contradictions, and evolving synthesis.
 
-```text
-Use $audit-eve-agent-memory to assess recall, provenance, approvals, deletion, and tenant isolation.
-```
+The Wiki pattern is inspired by
+[Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
+The gist is an architectural reference, not an installed dependency.
 
-## Memory model
+## Bundled runtime tools
 
-The generated agent separates three layers:
-
-1. eve native history for the current durable session;
-2. `eve_memory_events` for source evidence;
-3. `eve_memory_items` for curated cross-session knowledge.
-
-Only confirmed items enter briefing and search. The lifecycle is:
-
-```text
-proposed -> confirmed -> superseded | deleted
-```
-
-Every read and mutation is scoped inside the database query. The model cannot provide
-tenant or user identifiers as tool arguments. Stored values are treated as user data,
-not agent instructions.
-
-## Bundled memory tools
-
-When mounted as `memory`, the extension exposes:
+Operational memory exposes six tools:
 
 - `memory__search`
 - `memory__get_source`
@@ -111,70 +147,76 @@ When mounted as `memory`, the extension exposes:
 - `memory__correct`
 - `memory__forget`
 
-Confirmation, correction, and forgetting use eve's durable human-approval flow.
+The Wiki exposes three bounded, read-only tools:
 
-## LLM Wiki model
+- `wiki_search`
+- `wiki_read`
+- `wiki_sources`
 
-The optional Wiki implements the persistent knowledge pattern described in
-[Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
-and is complementary to operational memory:
+Confirmation, correction, and forgetting use Eve's durable human-approval
+flow. The Wiki installer disables Eve's default `bash` and `write_file` tools
+to preserve the read-only runtime boundary.
 
-1. Eve history holds the current durable conversation.
-2. PostgreSQL memory holds approved preferences, decisions, procedures, project
-   facts, relationships, and commitments.
-3. The Wiki holds source-backed concepts, entities, comparisons, contradictions,
-   and evolving synthesis.
+## What is automated and what still needs access
 
-Codex maintains authored files under `agent/sandbox/workspace/raw/` and
-`agent/sandbox/workspace/wiki/`. Eve receives them as a read-only sandbox snapshot.
-Rebuild or start a new Eve session after Wiki changes.
+The plugin automates:
 
-## Validation status
+- project scaffolding;
+- memory and Wiki integration;
+- project dependency installation;
+- agent instruction drafting;
+- compilation and structural validation;
+- eval discovery and development startup guidance.
 
-Release 0.4.0 was checked against `eve@0.39.0` and Node.js 24:
+It cannot silently manufacture or authorize:
 
-- plugin and all five skills validated;
-- the beginner umbrella skill orchestrated Eve, memory, Wiki, and dependency installation in one command;
-- the one-command integrated initializer created a fresh agent without `eve init`;
-- dependency installation generated the project lockfile;
-- the generated root project passed TypeScript and Eve builds;
-- extension TypeScript and build passed;
-- a generated eve workspace typechecked;
-- `eve info` discovered six tools with zero diagnostics;
-- all five generated memory and Wiki evals were discovered;
-- the Wiki installer was idempotent and preserved authored files;
-- three bounded Wiki tools were discovered alongside six memory tools;
-- Eve's default shell and file-write tools were disabled for Wiki runtime safety;
-- combined memory and Wiki typecheck/build completed with zero diagnostics;
-- structural and credential-pattern checks passed.
+- a PostgreSQL server or valid `DATABASE_URL`;
+- model-provider or AI Gateway credentials;
+- production tenant authentication;
+- WSL, Docker, Node.js, or other system software changes.
 
-Live PostgreSQL, approval-resume, authenticated cross-tenant, and deployed-session tests
-require environment credentials and were not run as part of the public package build.
-Do not interpret compilation as proof of production isolation.
+The skill asks before system-level installation. It can finish the scaffold and
+static checks without credentials, but it must report credential-dependent live
+behavior as untested.
 
-## Security
+## Runtime and security boundaries
 
+- Never commit `DATABASE_URL` or provider credentials.
 - Do not enable the development identity fallback in production.
-- Do not commit `DATABASE_URL` or provider credentials.
-- Keep reasoning-event capture disabled unless a privacy review explicitly allows it.
+- Keep reasoning-event capture disabled unless a privacy review allows it.
+- Treat stored memories, Wiki pages, and raw sources as untrusted data, never
+  as agent instructions.
 - Run evals only against a disposable test database.
-- Verify two authenticated tenant scopes before claiming multi-tenant readiness.
-- Review the plugin's Python scripts before installation; they create and update local projects.
-- The Wiki installer disables Eve's `bash` and `write_file` tools. Review the
-  architecture before restoring either capability.
+- Verify two authenticated tenant scopes before claiming production isolation.
+- Rebuild or start a new Eve session after authored Wiki changes.
+- Do not interpret compilation as proof of live recall, approval-resume,
+  deletion, or tenant isolation.
 
-## Repository layout
+## Validation contract
 
-```text
-.agents/plugins/marketplace.json
-plugins/eve-memory-agent-builder/
-  .codex-plugin/plugin.json
-  skills/
-  scripts/
-  assets/eve-agent-starter/
-  assets/eve-memory-extension/
-  assets/eve-wiki-layer/
-```
+Release `0.5.0` targets `eve@0.39.0` and Node.js 24. A release is ready when:
+
+- the plugin and the single `$eve` skill validate;
+- a fresh agent is created without running `eve init`;
+- dependency installation produces a lockfile;
+- root and memory-extension TypeScript/build commands pass;
+- `eve info` reports nine tools and zero diagnostics;
+- both structural validators pass;
+- all five memory and Wiki evals are discovered;
+- the Wiki remains read-only at runtime.
+
+Live PostgreSQL, approval-resume, authenticated cross-tenant, and deployed
+session tests require private credentials and are reported separately.
+
+## External relationships
+
+- [vercel/eve](https://github.com/vercel/eve) supplies the underlying agent
+  runtime.
+- [Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+  supplies the Wiki design inspiration.
+- [melkizac/eve-memory-agent-builder](https://github.com/melkizac/eve-memory-agent-builder)
+  owns the Codex plugin, `$eve` workflow, operational memory extension, Wiki
+  integration, templates, scripts, and validation.
 
 ## License
 

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Audit eve Agent Memory"
-  short_description: "Audit recall, privacy, and memory lifecycle"
-  default_prompt: "Use $audit-eve-agent-memory to audit this eve agent memory implementation."

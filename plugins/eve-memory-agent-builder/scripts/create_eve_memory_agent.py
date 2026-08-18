@@ -34,7 +34,7 @@ def ensure_safe_target(target: Path) -> None:
         names = ", ".join(sorted(entry.name for entry in owned[:5]))
         raise SystemExit(
             f"Target is not empty: {target}. Existing entries include: {names}. "
-            "Use the add-memory skill for an existing eve project."
+            "Use $eve to complete an existing Eve project."
         )
 
 
