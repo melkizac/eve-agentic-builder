@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.19.0",
   "imports": {
     "#*": "./agent/*",
     "#evals/*": "./evals/*"
@@ -11,6 +12,8 @@
     "build": "eve build",
     "dev": "eve dev",
     "doctor": "node scripts/doctor.mjs",
+    "storage": "node scripts/storage.mjs report",
+    "storage:clean": "node scripts/storage.mjs clean",
     "start": "eve start",
     "typecheck": "tsc"
   },

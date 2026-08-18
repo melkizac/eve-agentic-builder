@@ -11,6 +11,7 @@ from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_ROOT = PLUGIN_ROOT / "assets" / "eve-memory-extension"
+STORAGE_SCRIPT = PLUGIN_ROOT / "assets" / "eve-agent-starter" / "scripts" / "storage.mjs"
 
 
 MOUNT_TEMPLATE = '''import memory from "@local/eve-memory";
@@ -142,33 +143,38 @@ def write_new(path: Path, content: str, force: bool) -> bool:
 
 def update_package_json(path: Path) -> None:
     payload = json.loads(path.read_text(encoding="utf-8"))
+    payload.setdefault("packageManager", "pnpm@11.19.0")
     dependencies = payload.setdefault("dependencies", {})
     dependencies["@local/eve-memory"] = "workspace:*"
     scripts = payload.setdefault("scripts", {})
     scripts.setdefault("memory:build", "pnpm --dir packages/eve-memory build")
     scripts.setdefault("memory:typecheck", "pnpm --dir packages/eve-memory typecheck")
+    scripts.setdefault("storage", "node scripts/storage.mjs report")
+    scripts.setdefault("storage:clean", "node scripts/storage.mjs clean")
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def update_pnpm_workspace(path: Path) -> None:
     existing = path.read_text(encoding="utf-8") if path.exists() else ""
-    if "packages/eve-memory" in existing or "packages/*" in existing:
-        return
-    if not any(line.startswith("packages:") for line in existing.splitlines()):
-        separator = "" if not existing or existing.endswith("\n") else "\n"
-        path.write_text(
-            existing + separator + 'packages:\n  - "packages/*"\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        return
-
     lines = existing.splitlines()
-    packages_index = next(index for index, line in enumerate(lines) if line.startswith("packages:"))
-    insert_at = packages_index + 1
-    while insert_at < len(lines) and (not lines[insert_at] or lines[insert_at][0].isspace()):
-        insert_at += 1
-    lines.insert(insert_at, '  - "packages/*"')
+    if "packages/eve-memory" not in existing and "packages/*" not in existing:
+        if not any(line.startswith("packages:") for line in lines):
+            lines.extend(["packages:", '  - "packages/*"'])
+        else:
+            packages_index = next(index for index, line in enumerate(lines) if line.startswith("packages:"))
+            insert_at = packages_index + 1
+            while insert_at < len(lines) and (not lines[insert_at] or lines[insert_at][0].isspace()):
+                insert_at += 1
+            lines.insert(insert_at, '  - "packages/*"')
+
+    shared_store_index = next(
+        (index for index, line in enumerate(lines) if line.startswith("enableGlobalVirtualStore:")),
+        None,
+    )
+    if shared_store_index is None:
+        lines.append("enableGlobalVirtualStore: true")
+    else:
+        lines[shared_store_index] = "enableGlobalVirtualStore: true"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
@@ -228,6 +234,9 @@ def bootstrap_project(target: Path, project_id: str | None = None, force: bool =
     for path, content in files.items():
         if write_new(path, content, force):
             generated.append(str(path))
+    storage_path = target / "scripts" / "storage.mjs"
+    if write_new(storage_path, STORAGE_SCRIPT.read_text(encoding="utf-8"), force):
+        generated.append(str(storage_path))
     update_env_example(target / ".env.example", project_id)
     generated.append(str(target / ".env.example"))
 
@@ -241,6 +250,7 @@ def bootstrap_project(target: Path, project_id: str | None = None, force: bool =
             "Run pnpm install",
             "Run pnpm memory:typecheck",
             "Run pnpm memory:build",
+            "Run pnpm run storage",
             "Run pnpm exec eve info"
         ]
     }

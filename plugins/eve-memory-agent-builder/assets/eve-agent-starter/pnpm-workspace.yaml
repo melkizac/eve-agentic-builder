@@ -1,5 +1,6 @@
 packages:
   - "packages/*"
+enableGlobalVirtualStore: true
 minimumReleaseAgeExclude:
   - "@ai-sdk/*"
   - "@rolldown/*"
