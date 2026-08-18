@@ -39,7 +39,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", required=True, help="New or empty project directory")
     parser.add_argument("--name", help="npm package and Eve agent name")
-    parser.add_argument("--model", default="openai/gpt-5.4-mini", help="AI Gateway model id")
+    parser.add_argument(
+        "--model",
+        help="AI Gateway model id for hosted use; omit to reuse the local Codex login",
+    )
     parser.add_argument("--project-id", help="Stable durable-memory project scope")
     parser.add_argument(
         "--skip-install",
@@ -52,10 +55,10 @@ def main() -> None:
     create_arguments = [
         "--target",
         str(target),
-        "--model",
-        args.model,
         "--skip-install",
     ]
+    if args.model:
+        create_arguments.extend(["--model", args.model])
     if args.name:
         create_arguments.extend(["--name", args.name])
     if args.project_id:
@@ -72,12 +75,12 @@ def main() -> None:
             {
                 "target": str(target),
                 "name": package["name"],
-                "model": args.model,
+                "model": args.model or "chatgpt() via local Codex login",
                 "eveVersion": package["dependencies"]["eve"],
                 "dependenciesInstalled": not args.skip_install,
                 "layers": {
                     "session": "Eve durable session history",
-                    "operationalMemory": "PostgreSQL @local/eve-memory",
+                    "operationalMemory": "Embedded PGlite locally; PostgreSQL in production",
                     "knowledge": "Read-only source-grounded LLM Wiki",
                 },
                 "runtimeSafety": {
@@ -88,7 +91,8 @@ def main() -> None:
                 "next": [
                     "Describe the agent in agent/instructions.md",
                     "Add source documents under agent/sandbox/workspace/raw",
-                    "Set DATABASE_URL and model credentials outside version control",
+                    "Run locally with Codex login and embedded memory",
+                    "Set DATABASE_URL and a deployable model only for hosted production",
                     "Run validation before pnpm dev",
                 ],
             },

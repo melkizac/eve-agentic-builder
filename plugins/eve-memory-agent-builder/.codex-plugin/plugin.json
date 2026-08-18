@@ -1,7 +1,7 @@
 {
   "name": "eve-memory-agent-builder",
-  "version": "0.5.1",
-  "description": "Create a complete Eve memory and Wiki agent through one beginner-facing skill.",
+  "version": "0.6.0",
+  "description": "Create a zero-configuration local Eve memory and Wiki agent through one beginner-facing skill.",
   "author": {
     "name": "melkizac",
     "url": "https://github.com/melkizac"
@@ -9,12 +9,12 @@
   "homepage": "https://github.com/melkizac/eve-agentic-builder#readme",
   "repository": "https://github.com/melkizac/eve-agentic-builder",
   "license": "Apache-2.0",
-  "keywords": ["eve", "agents", "memory", "llm-wiki", "codex", "postgresql"],
+  "keywords": ["eve", "agents", "memory", "llm-wiki", "codex", "pglite", "postgresql"],
   "skills": "./skills/",
   "interface": {
     "displayName": "Eve Memory Agent Builder",
-    "shortDescription": "Build a complete Eve agent with one skill.",
-    "longDescription": "Use one beginner-facing Eve skill to create, complete, maintain, and validate a pinned Eve agent with PostgreSQL operational memory and a source-grounded read-only LLM Wiki.",
+    "shortDescription": "Build a zero-setup local Eve agent with one skill.",
+    "longDescription": "Use one beginner-facing Eve skill to create, complete, maintain, and validate a pinned Eve agent with Codex-authenticated local model access, embedded operational memory, optional production PostgreSQL, and a source-grounded read-only LLM Wiki.",
     "developerName": "Melverick",
     "category": "Developer Tools",
     "capabilities": ["Create", "Write", "Knowledge", "Audit"],

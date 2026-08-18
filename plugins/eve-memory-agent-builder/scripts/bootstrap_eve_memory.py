@@ -15,17 +15,25 @@ TEMPLATE_ROOT = PLUGIN_ROOT / "assets" / "eve-memory-extension"
 
 MOUNT_TEMPLATE = '''import memory from "@local/eve-memory";
 
-const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) throw new Error("DATABASE_URL is required for durable memory.");
+function memoryBackend(): "auto" | "pglite" | "postgres" {
+  const value = process.env.EVE_MEMORY_BACKEND ?? "auto";
+  if (value === "auto" || value === "pglite" || value === "postgres") return value;
+  throw new Error("EVE_MEMORY_BACKEND must be auto, pglite, or postgres.");
+}
+
+const allowLocal = process.env.EVE_MEMORY_ALLOW_LOCAL?.trim().toLowerCase();
+const databaseUrl = process.env.DATABASE_URL?.trim() || undefined;
 
 export default memory({
+  backend: memoryBackend(),
   databaseUrl,
+  dataDir: process.env.EVE_MEMORY_DATA_DIR ?? ".eve-data/memory",
   namespace: process.env.EVE_MEMORY_NAMESPACE ?? "default",
   projectId: process.env.EVE_MEMORY_PROJECT_ID ?? "__PROJECT_ID__",
   maxBriefItems: Number(process.env.EVE_MEMORY_BRIEF_ITEMS ?? "8"),
   captureReasoning: process.env.EVE_MEMORY_CAPTURE_REASONING === "true",
   allowDevelopmentScope:
-    process.env.NODE_ENV !== "production" && process.env.EVE_MEMORY_ALLOW_LOCAL === "true",
+    process.env.NODE_ENV !== "production" && allowLocal !== "false",
   developmentTenantId: process.env.EVE_MEMORY_DEV_TENANT ?? "local",
   developmentUserId: process.env.EVE_MEMORY_DEV_USER ?? "local-user"
 });
@@ -49,9 +57,17 @@ This agent mounts `@local/eve-memory` as `memory`, so its tools appear with the
 - Confirmation, correction, and forgetting require human approval.
 - Reasoning events are excluded unless explicitly enabled.
 
+## Storage modes
+
+- Local development defaults to embedded PGlite under `.eve-data/memory`.
+- `EVE_MEMORY_BACKEND=auto` selects PostgreSQL when `DATABASE_URL` exists and
+  embedded PGlite otherwise.
+- Embedded memory is single-machine and single-user development storage. It is
+  not evidence of production tenant isolation.
+
 ## Production requirements
 
-Provide `DATABASE_URL` and authenticated route context whose current user has a
+Production refuses embedded storage. Provide `DATABASE_URL` and authenticated route context whose current user has a
 string `tenantId` attribute. Do not enable `EVE_MEMORY_ALLOW_LOCAL` in production.
 Run the memory evals after changing identity, routing, storage, or tool policies.
 """
@@ -159,13 +175,16 @@ def update_pnpm_workspace(path: Path) -> None:
 def update_env_example(path: Path, project_id: str) -> None:
     block = f"""
 # eve durable memory
-DATABASE_URL=postgres://user:password@localhost:5432/eve_memory
+EVE_MEMORY_BACKEND=auto
+EVE_MEMORY_DATA_DIR=.eve-data/memory
+# Required only for production or multi-user PostgreSQL deployments.
+DATABASE_URL=
 EVE_MEMORY_NAMESPACE=default
 EVE_MEMORY_PROJECT_ID={project_id}
 EVE_MEMORY_BRIEF_ITEMS=8
 EVE_MEMORY_CAPTURE_REASONING=false
-# Local development only. Never enable this in production.
-EVE_MEMORY_ALLOW_LOCAL=false
+# Local development defaults to this identity. Production always disables it.
+EVE_MEMORY_ALLOW_LOCAL=true
 EVE_MEMORY_DEV_TENANT=local
 EVE_MEMORY_DEV_USER=local-user
 """.lstrip()
@@ -217,7 +236,8 @@ def bootstrap_project(target: Path, project_id: str | None = None, force: bool =
         "projectId": project_id,
         "generated": generated,
         "next": [
-            "Set DATABASE_URL and authenticated tenant context",
+            "Run locally with embedded PGlite memory",
+            "Set DATABASE_URL and authenticated tenant context before production",
             "Run pnpm install",
             "Run pnpm memory:typecheck",
             "Run pnpm memory:build",

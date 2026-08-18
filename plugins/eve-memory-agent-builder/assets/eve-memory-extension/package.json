@@ -1,6 +1,6 @@
 {
   "name": "@local/eve-memory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "eve": {
@@ -23,9 +23,11 @@
   "scripts": {
     "build": "eve extension build",
     "prepare": "eve extension build",
+    "test": "eve extension build && node --test tests/**/*.test.mjs",
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@electric-sql/pglite": "0.5.5",
     "postgres": "3.4.9",
     "zod": "4.4.3"
   },

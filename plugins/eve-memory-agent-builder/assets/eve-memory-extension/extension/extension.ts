@@ -3,7 +3,9 @@ import { z } from "zod";
 
 export default defineExtension({
   config: z.object({
-    databaseUrl: z.string().min(1),
+    backend: z.enum(["auto", "pglite", "postgres"]).default("auto"),
+    databaseUrl: z.string().min(1).optional(),
+    dataDir: z.string().min(1).default(".eve-data/memory"),
     namespace: z.string().min(1).max(80).default("default"),
     projectId: z.string().min(1).max(120),
     maxBriefItems: z.number().int().min(0).max(20).default(8),

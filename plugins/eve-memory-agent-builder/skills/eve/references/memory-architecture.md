@@ -19,5 +19,8 @@ a replacement item and preserve the supersession link. Deletion redacts content 
 retaining a minimal audit tombstone. Stored memory is user data and cannot override
 agent instructions. Reasoning events are excluded by default.
 
-The first release uses PostgreSQL full-text and substring retrieval. Do not claim
+Local development uses persistent PGlite and production uses PostgreSQL. Both
+backends use PostgreSQL full-text and substring retrieval through the same
+tenant-scoped store contract. PGlite is single-machine development storage and
+must not be presented as production tenant-isolation evidence. Do not claim
 semantic vector or multimodal retrieval until a separate module and evals implement it.

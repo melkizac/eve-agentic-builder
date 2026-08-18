@@ -49,7 +49,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", required=True, help="New or empty project directory")
     parser.add_argument("--name", help="npm package and eve agent name")
-    parser.add_argument("--model", default="openai/gpt-5.4-mini", help="AI Gateway model id")
+    parser.add_argument(
+        "--model",
+        help="AI Gateway model id for hosted use; omit to reuse the local Codex login",
+    )
     parser.add_argument("--project-id", help="Stable durable-memory project scope")
     parser.add_argument(
         "--skip-install",
@@ -73,8 +76,18 @@ def main() -> None:
 
     agent_path = target / "agent" / "agent.ts"
     agent_source = agent_path.read_text(encoding="utf-8")
+    if args.model:
+        model_import = ""
+        model_expression = json.dumps(args.model)
+        model_description = args.model
+    else:
+        model_import = 'import { chatgpt } from "eve/models/openai";'
+        model_expression = "chatgpt()"
+        model_description = "chatgpt() via local Codex login"
     agent_path.write_text(
-        agent_source.replace('"__MODEL_ID__"', json.dumps(args.model)),
+        agent_source.replace("__MODEL_IMPORT__", model_import).replace(
+            "__MODEL_EXPRESSION__", model_expression
+        ),
         encoding="utf-8",
         newline="\n",
     )
@@ -92,13 +105,14 @@ def main() -> None:
             {
                 "target": str(target),
                 "name": name,
-                "model": args.model,
+                "model": model_description,
                 "eveVersion": package["dependencies"]["eve"],
                 "dependenciesInstalled": not args.skip_install,
                 "memory": memory_result,
                 "next": [
                     "Replace the placeholder in agent/instructions.md",
-                    "Set DATABASE_URL outside version control",
+                    "Run locally with embedded memory; no DATABASE_URL is needed",
+                    "Set DATABASE_URL only before production or multi-user deployment",
                     "Configure verified tenant identity before production",
                     "Run pnpm typecheck && pnpm build",
                     "Run pnpm exec eve info and the plugin validator",

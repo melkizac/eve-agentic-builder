@@ -19,3 +19,5 @@
 | Subagents | Only bounded task-relevant memory crosses the subagent boundary |
 | Context budget | Briefing has a strict item limit and deeper recall uses a tool |
 | Operational proof | Typecheck, extension build, `eve info`, evals, and runtime checks are recorded |
+| Backend selection | Local mode persists with PGlite; `DATABASE_URL` selects PostgreSQL; production refuses PGlite |
+| Model authentication | Local `chatgpt()` delegates to Codex login; hosted mode uses a deployable credential |

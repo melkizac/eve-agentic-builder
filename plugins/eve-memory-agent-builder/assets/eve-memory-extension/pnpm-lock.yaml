@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@electric-sql/pglite':
+        specifier: 0.5.5
+        version: 0.5.5
       postgres:
         specifier: 3.4.9
         version: 3.4.9
@@ -20,7 +23,7 @@ importers:
         version: 24.13.3
       eve:
         specifier: 0.39.0
-        version: 0.39.0(ai@7.0.66(zod@4.4.3))
+        version: 0.39.0(@electric-sql/pglite@0.5.5)(ai@7.0.66(zod@4.4.3))
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -42,6 +45,9 @@ packages:
   '@ai-sdk/provider@4.0.7':
     resolution: {integrity: sha512-6or44XprPzKbr8zkmzosowSE0pxkvJcoojBL+mCZvPUt3kvXp3XSNqeVun9golb1acEfSo6yaEBRT18h2VU+1Q==}
     engines: {node: '>=22'}
+
+  '@electric-sql/pglite@0.5.5':
+    resolution: {integrity: sha512-QeZ+oB7QaU4EJj2awrB8hwFZ5TXxLRBQ9Gfq0dQauYDdWsRtuWRCERgtri35vRfL07KQHlVlc/4Qxvn7a5AXeA==}
 
   '@oxc-project/types@0.144.0':
     resolution: {integrity: sha512-nuhZIOLuI6TFQ32I/WnUx+SCPY7SdSKwgnFHydAuoS1+Z4BRcaP+RRJmGzl9lw+0OFF7UmaESf7KQRXaNLHypg==}
@@ -558,6 +564,8 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
+  '@electric-sql/pglite@0.5.5': {}
+
   '@oxc-project/types@0.144.0': {}
 
   '@rolldown/binding-android-arm64@1.2.4':
@@ -687,7 +695,9 @@ snapshots:
     optionalDependencies:
       srvx: 0.11.22
 
-  db0@0.3.4: {}
+  db0@0.3.4(@electric-sql/pglite@0.5.5):
+    optionalDependencies:
+      '@electric-sql/pglite': 0.5.5
 
   env-runner@0.1.16:
     dependencies:
@@ -696,10 +706,10 @@ snapshots:
       httpxy: 0.5.5
       srvx: 0.11.22
 
-  eve@0.39.0(ai@7.0.66(zod@4.4.3)):
+  eve@0.39.0(@electric-sql/pglite@0.5.5)(ai@7.0.66(zod@4.4.3)):
     dependencies:
       ai: 7.0.66(zod@4.4.3)
-      nitro: 3.0.260610-beta
+      nitro: 3.0.260610-beta(@electric-sql/pglite@0.5.5)
       undici: 8.9.0
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -760,11 +770,11 @@ snapshots:
 
   nf3@0.3.23: {}
 
-  nitro@3.0.260610-beta:
+  nitro@3.0.260610-beta(@electric-sql/pglite@0.5.5):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.10(srvx@0.11.22)
-      db0: 0.3.4
+      db0: 0.3.4(@electric-sql/pglite@0.5.5)
       env-runner: 0.1.16
       h3: 2.0.1-rc.22(crossws@0.4.10(srvx@0.11.22))
       hookable: 6.1.1
@@ -775,7 +785,7 @@ snapshots:
       rolldown: 1.2.4
       srvx: 0.11.22
       unenv: 2.0.0-rc.24
-      unstorage: 2.0.0-alpha.7(db0@0.3.4)(ofetch@2.0.0-alpha.3)
+      unstorage: 2.0.0-alpha.7(db0@0.3.4(@electric-sql/pglite@0.5.5))(ofetch@2.0.0-alpha.3)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -877,9 +887,9 @@ snapshots:
     dependencies:
       pathe: 2.0.3
 
-  unstorage@2.0.0-alpha.7(db0@0.3.4)(ofetch@2.0.0-alpha.3):
+  unstorage@2.0.0-alpha.7(db0@0.3.4(@electric-sql/pglite@0.5.5))(ofetch@2.0.0-alpha.3):
     optionalDependencies:
-      db0: 0.3.4
+      db0: 0.3.4(@electric-sql/pglite@0.5.5)
       ofetch: 2.0.0-alpha.3
 
   zod@4.4.3: {}
