@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add LLM Wiki to Eve Agent"
+  short_description: "Add read-only Wiki knowledge to an Eve agent"
+  default_prompt: "Use $add-llm-wiki-to-eve-agent to add a source-grounded, read-only LLM Wiki to this Eve memory agent."

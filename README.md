@@ -15,6 +15,14 @@ PostgreSQL-backed memory extension with:
 - secret-rejection and untrusted-memory policies;
 - generated recall, approval, and secret-handling evals.
 
+An optional LLM Wiki layer adds:
+
+- immutable raw sources and maintained Markdown synthesis;
+- index, source manifest, chronological log, and page templates;
+- bounded `wiki_search`, `wiki_read`, and `wiki_sources` runtime tools;
+- explicit routing between session, operational, and knowledge memory;
+- a read-only Eve runtime boundary enforced by disabling shell and file writes.
+
 ## Install in Codex
 
 Prerequisites:
@@ -50,6 +58,12 @@ Add memory to an existing project:
 
 ```text
 Use $add-memory-to-eve-agent to add durable memory to this eve project.
+```
+
+Add source-grounded Wiki knowledge:
+
+```text
+Use $add-llm-wiki-to-eve-agent to add a read-only LLM Wiki to this eve memory agent.
 ```
 
 Audit an implementation:
@@ -89,18 +103,38 @@ When mounted as `memory`, the extension exposes:
 
 Confirmation, correction, and forgetting use eve's durable human-approval flow.
 
+## LLM Wiki model
+
+The optional Wiki implements the persistent knowledge pattern described in
+[Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+and is complementary to operational memory:
+
+1. Eve history holds the current durable conversation.
+2. PostgreSQL memory holds approved preferences, decisions, procedures, project
+   facts, relationships, and commitments.
+3. The Wiki holds source-backed concepts, entities, comparisons, contradictions,
+   and evolving synthesis.
+
+Codex maintains authored files under `agent/sandbox/workspace/raw/` and
+`agent/sandbox/workspace/wiki/`. Eve receives them as a read-only sandbox snapshot.
+Rebuild or start a new Eve session after Wiki changes.
+
 ## Validation status
 
-Release 0.2.0 was checked against `eve@0.39.0` and Node.js 24:
+Release 0.3.0 was checked against `eve@0.39.0` and Node.js 24:
 
-- plugin and all three skills validated;
+- plugin and all four skills validated;
 - the one-command integrated initializer created a fresh agent without `eve init`;
 - dependency installation generated the project lockfile;
 - the generated root project passed TypeScript and Eve builds;
 - extension TypeScript and build passed;
 - a generated eve workspace typechecked;
 - `eve info` discovered six tools with zero diagnostics;
-- all three generated evals were discovered;
+- all five generated memory and Wiki evals were discovered;
+- the Wiki installer was idempotent and preserved authored files;
+- three bounded Wiki tools were discovered alongside six memory tools;
+- Eve's default shell and file-write tools were disabled for Wiki runtime safety;
+- combined memory and Wiki typecheck/build completed with zero diagnostics;
 - structural and credential-pattern checks passed.
 
 Live PostgreSQL, approval-resume, authenticated cross-tenant, and deployed-session tests
@@ -115,6 +149,8 @@ Do not interpret compilation as proof of production isolation.
 - Run evals only against a disposable test database.
 - Verify two authenticated tenant scopes before claiming multi-tenant readiness.
 - Review the plugin's Python scripts before installation; they create and update local projects.
+- The Wiki installer disables Eve's `bash` and `write_file` tools. Review the
+  architecture before restoring either capability.
 
 ## Repository layout
 
@@ -126,6 +162,7 @@ plugins/eve-memory-agent-builder/
   scripts/
   assets/eve-agent-starter/
   assets/eve-memory-extension/
+  assets/eve-wiki-layer/
 ```
 
 ## License

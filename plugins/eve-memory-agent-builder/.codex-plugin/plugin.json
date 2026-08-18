@@ -1,7 +1,7 @@
 {
   "name": "eve-memory-agent-builder",
-  "version": "0.2.0",
-  "description": "Create, extend, and audit real eve agents with tenant-scoped durable memory.",
+  "version": "0.3.0",
+  "description": "Create, extend, and audit Eve agents with durable memory and source-grounded Wikis.",
   "author": {
     "name": "melkizac",
     "url": "https://github.com/melkizac"
@@ -9,18 +9,19 @@
   "homepage": "https://github.com/melkizac/eve-memory-agent-builder#readme",
   "repository": "https://github.com/melkizac/eve-memory-agent-builder",
   "license": "Apache-2.0",
-  "keywords": ["eve", "agents", "memory", "codex", "postgresql"],
+  "keywords": ["eve", "agents", "memory", "llm-wiki", "codex", "postgresql"],
   "skills": "./skills/",
   "interface": {
     "displayName": "Eve Memory Agent Builder",
-    "shortDescription": "Build eve agents with isolated durable memory.",
-    "longDescription": "Create complete pinned eve projects from an integrated starter, add the bundled PostgreSQL memory extension to existing agents, and audit recall, provenance, correction, deletion, and tenant isolation.",
+    "shortDescription": "Build Eve agents with memory and Wikis.",
+    "longDescription": "Create complete pinned Eve projects, add PostgreSQL operational memory, add a source-grounded read-only LLM Wiki, and audit recall, provenance, correction, deletion, and tenant isolation.",
     "developerName": "Melverick",
     "category": "Developer Tools",
-    "capabilities": ["Create", "Write", "Audit"],
+    "capabilities": ["Create", "Write", "Knowledge", "Audit"],
     "defaultPrompt": [
       "Create an eve agent with durable memory.",
       "Add durable memory to this eve project.",
+      "Add a read-only LLM Wiki to this eve project.",
       "Audit this eve agent's memory isolation."
     ]
   }
