@@ -1,7 +1,7 @@
 interface:
   display_name: "Eve"
-  short_description: "Create a complete Eve memory and Wiki agent"
-  default_prompt: "Use $eve to create and validate a complete Eve agent with durable memory and a read-only LLM Wiki."
+  short_description: "Create a zero-setup local Eve memory and Wiki agent"
+  default_prompt: "Use $eve to create and validate a complete local Eve agent with Codex-authenticated model access, durable embedded memory, and a read-only LLM Wiki."
 
 policy:
   allow_implicit_invocation: true

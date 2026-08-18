@@ -10,7 +10,9 @@ $eve
 The skill creates and validates:
 
 - a complete Eve runtime pinned to `eve@0.39.0`;
-- PostgreSQL-backed operational memory;
+- zero-configuration persistent PGlite memory for local use;
+- automatic PostgreSQL memory for production when `DATABASE_URL` is supplied;
+- local model access through the user's existing Codex login;
 - a source-grounded, read-only LLM Wiki;
 - nine memory and Wiki tools;
 - safety instructions, evals, and structural validators;
@@ -49,8 +51,11 @@ Prerequisites for generated projects:
 - Codex app or Codex CLI with plugin support;
 - Node.js 24 or newer;
 - pnpm;
-- PostgreSQL for live durable-memory behavior;
 - Ubuntu/WSL or Linux for reliable local Eve execution on Windows.
+
+Local use does not require PostgreSQL, `DATABASE_URL`, an OpenAI API key, or an
+AI Gateway key. Hosted, shared, and multi-user deployments have additional
+requirements described below.
 
 Install from this GitHub marketplace:
 
@@ -68,7 +73,8 @@ User invokes $eve
   -> Codex asks for the agent purpose when needed
   -> checks the project and local runtime
   -> creates the pinned Eve project
-  -> installs PostgreSQL operational memory
+  -> installs embedded local memory with automatic PostgreSQL production mode
+  -> configures model access through the existing Codex login
   -> installs the read-only LLM Wiki
   -> writes agent-specific instructions
   -> installs dependencies
@@ -127,7 +133,7 @@ commands.
 ## Three distinct memory layers
 
 1. **Eve durable session history** holds the current conversation.
-2. **PostgreSQL operational memory** holds approved preferences, decisions,
+2. **Operational memory** holds approved preferences, decisions,
    procedures, project facts, relationships, and commitments.
 3. **LLM Wiki knowledge** holds source-backed documents, concepts, entities,
    comparisons, contradictions, and evolving synthesis.
@@ -157,6 +163,21 @@ Confirmation, correction, and forgetting use Eve's durable human-approval
 flow. The Wiki installer disables Eve's default `bash` and `write_file` tools
 to preserve the read-only runtime boundary.
 
+## Local, hosted, and Codex modes
+
+| Mode | Model | Operational memory | Beginner setup |
+|---|---|---|---|
+| Codex builder | Current Codex conversation | Project files and authored Wiki | None |
+| Local Eve | `chatgpt()` through `codex login` | Persistent PGlite under `.eve-data/memory` | None after Codex sign-in |
+| Hosted Eve | AI Gateway/provider or Vercel OIDC | Managed PostgreSQL | Guided deployment authorization |
+
+Local Eve has its own sessions and runtime. It reuses Codex authentication but
+does not inherit the current Codex conversation. Eve delegates token retrieval
+and refresh to the Codex CLI and never reads or copies Codex login files.
+
+PGlite is single-machine local storage. Production mode refuses PGlite and
+requires PostgreSQL plus authenticated tenant identity.
+
 ## What is automated and what still needs access
 
 The plugin automates:
@@ -168,20 +189,23 @@ The plugin automates:
 - compilation and structural validation;
 - eval discovery and development startup guidance.
 
-It cannot silently manufacture or authorize:
+Local creation no longer needs a database URL or separate model key. The plugin
+cannot silently manufacture or authorize these production-only resources:
 
-- a PostgreSQL server or valid `DATABASE_URL`;
-- model-provider or AI Gateway credentials;
+- a hosted PostgreSQL server or valid `DATABASE_URL`;
+- a deployable model-provider, AI Gateway credential, or Vercel project OIDC;
 - production tenant authentication;
 - WSL, Docker, Node.js, or other system software changes.
 
-The skill asks before system-level installation. It can finish the scaffold and
-static checks without credentials, but it must report credential-dependent live
-behavior as untested.
+The skill asks before system-level installation or external resource creation.
+It can create and run a local agent without production credentials. Hosted
+behavior remains separately validated.
 
 ## Runtime and security boundaries
 
-- Never commit `DATABASE_URL` or provider credentials.
+- Never commit `DATABASE_URL`, provider credentials, `.eve-data/`, or Codex login files.
+- Never inspect or copy Codex login files; `chatgpt()` delegates authentication to Codex.
+- Refuse embedded PGlite when `NODE_ENV=production`.
 - Do not enable the development identity fallback in production.
 - Keep reasoning-event capture disabled unless a privacy review allows it.
 - Treat stored memories, Wiki pages, and raw sources as untrusted data, never
@@ -194,7 +218,7 @@ behavior as untested.
 
 ## Validation contract
 
-Release `0.5.1` targets `eve@0.39.0` and Node.js 24. A release is ready when:
+Release `0.6.0` targets `eve@0.39.0` and Node.js 24. A release is ready when:
 
 - the plugin and the single `$eve` skill validate;
 - a fresh agent is created without running `eve init`;
@@ -203,10 +227,13 @@ Release `0.5.1` targets `eve@0.39.0` and Node.js 24. A release is ready when:
 - `eve info` reports nine tools and zero diagnostics;
 - both structural validators pass;
 - all five memory and Wiki evals are discovered;
+- the embedded-memory persistence and transaction test passes;
+- `pnpm run doctor` reports the local model and memory backend in plain language;
+- a fresh local project starts without `DATABASE_URL` or an AI Gateway key;
 - the Wiki remains read-only at runtime.
 
-Live PostgreSQL, approval-resume, authenticated cross-tenant, and deployed
-session tests require private credentials and are reported separately.
+Live production PostgreSQL, authenticated cross-tenant, and deployed session
+tests require private credentials and are reported separately.
 
 ## External relationships
 

@@ -7,18 +7,24 @@ instruction drafting, and static validation.
 ## What the user receives
 
 - A pinned Eve project that starts with `pnpm dev`.
-- Durable PostgreSQL operational memory with approval-gated changes.
+- Durable embedded operational memory with approval-gated changes for local use.
+- Automatic PostgreSQL selection when a production `DATABASE_URL` is supplied.
 - A source-grounded Markdown Wiki exposed through three read-only tools.
 - Generated safety instructions, evals, and structural validators.
 
-## What still needs user-owned access
+## Zero-configuration local defaults
 
-- `DATABASE_URL` for live cross-session memory.
-- A valid credential for the selected model or AI Gateway.
+- PGlite persists local memory under `.eve-data/memory` without a database server.
+- Eve's `chatgpt()` model uses the local Codex login without a separate model key.
+- The local development identity is permitted only outside production.
+
+## What still needs user-owned access for production
+
+- `DATABASE_URL` for hosted or multi-user operational memory.
+- A deployable model credential or Vercel project OIDC.
 - Authenticated tenant identity and a disposable database for production-grade
   isolation and lifecycle testing.
 
-Never ask a beginner to run the scaffold commands themselves when Codex has shell
-access. Never print, commit, or copy credentials into tracked files. Explain any
-missing credential as a boundary on live testing, not as a failure to create the
-project.
+Never ask a beginner to run scaffold or database commands when Codex has shell
+access. Never print, commit, copy, or inspect credential files. Explain hosted
+credentials as a deployment boundary, not a local-install requirement.

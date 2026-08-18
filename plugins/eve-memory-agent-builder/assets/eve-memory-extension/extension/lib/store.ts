@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 
-import { database, ensureSchema } from "./database";
+import { database, ensureSchema, type MemoryDatabase } from "./database";
 import type { MemoryItem, MemoryKind, MemoryScope, Sensitivity } from "./types";
 
-function mapItem(row: Record<string, unknown>): MemoryItem {
+type Row = Record<string, unknown>;
+
+function mapItem(row: Row): MemoryItem {
   return {
     id: String(row.id),
     kind: row.kind as MemoryKind,
@@ -20,18 +22,18 @@ function mapItem(row: Record<string, unknown>): MemoryItem {
 
 export async function recordSessionScope(scope: MemoryScope, sessionId: string): Promise<void> {
   await ensureSchema();
-  const sql = database();
-  await sql`
-    insert into eve_memory_session_scopes
+  const sql = await database();
+  await sql.query(
+    `insert into eve_memory_session_scopes
       (namespace, session_id, tenant_id, user_id, project_id)
-    values
-      (${scope.namespace}, ${sessionId}, ${scope.tenantId}, ${scope.userId}, ${scope.projectId})
+    values ($1, $2, $3, $4, $5)
     on conflict (namespace, session_id) do update set
       tenant_id = excluded.tenant_id,
       user_id = excluded.user_id,
       project_id = excluded.project_id,
-      last_seen_at = now()
-  `;
+      last_seen_at = now()`,
+    [scope.namespace, sessionId, scope.tenantId, scope.userId, scope.projectId]
+  );
 }
 
 export async function recordEvent(input: {
@@ -44,33 +46,41 @@ export async function recordEvent(input: {
   truncated: boolean;
 }): Promise<void> {
   await ensureSchema();
-  const sql = database();
+  const sql = await database();
   const data = input.data === undefined ? null : JSON.stringify(input.data);
-  await sql`
-    insert into eve_memory_events
+  await sql.query(
+    `insert into eve_memory_events
       (event_id, namespace, session_id, event_type, event_at, event_data, truncated)
-    values
-      (${input.eventId}, ${input.namespace}, ${input.sessionId}, ${input.eventType},
-       ${input.eventAt}, ${data}::jsonb, ${input.truncated})
-    on conflict (event_id) do nothing
-  `;
+    values ($1, $2, $3, $4, $5, $6::jsonb, $7)
+    on conflict (event_id) do nothing`,
+    [
+      input.eventId,
+      input.namespace,
+      input.sessionId,
+      input.eventType,
+      input.eventAt,
+      data,
+      input.truncated
+    ]
+  );
 }
 
 export async function listBrief(scope: MemoryScope, limit: number): Promise<MemoryItem[]> {
   if (limit === 0) return [];
   await ensureSchema();
-  const sql = database();
-  const rows = await sql`
-    select * from eve_memory_items
-    where namespace = ${scope.namespace}
-      and tenant_id = ${scope.tenantId}
-      and user_id = ${scope.userId}
-      and project_id = ${scope.projectId}
+  const sql = await database();
+  const rows = await sql.query(
+    `select * from eve_memory_items
+    where namespace = $1
+      and tenant_id = $2
+      and user_id = $3
+      and project_id = $4
       and status = 'confirmed'
     order by updated_at desc
-    limit ${limit}
-  `;
-  return rows.map((row) => mapItem(row));
+    limit $5`,
+    [scope.namespace, scope.tenantId, scope.userId, scope.projectId, limit]
+  );
+  return rows.map(mapItem);
 }
 
 export async function searchMemories(
@@ -79,25 +89,33 @@ export async function searchMemories(
   limit: number
 ): Promise<Array<MemoryItem & { score: number }>> {
   await ensureSchema();
-  const sql = database();
-  const likeQuery = `%${query}%`;
-  const rows = await sql`
-    select *,
-      (case when content ilike ${likeQuery} then 2 else 0 end) +
-      ts_rank(to_tsvector('simple', content), plainto_tsquery('simple', ${query})) as score
+  const sql = await database();
+  const rows = await sql.query(
+    `select *,
+      (case when content ilike $5 then 2 else 0 end) +
+      ts_rank(to_tsvector('simple', content), plainto_tsquery('simple', $6)) as score
     from eve_memory_items
-    where namespace = ${scope.namespace}
-      and tenant_id = ${scope.tenantId}
-      and user_id = ${scope.userId}
-      and project_id = ${scope.projectId}
+    where namespace = $1
+      and tenant_id = $2
+      and user_id = $3
+      and project_id = $4
       and status = 'confirmed'
       and (
-        content ilike ${likeQuery}
-        or to_tsvector('simple', content) @@ plainto_tsquery('simple', ${query})
+        content ilike $5
+        or to_tsvector('simple', content) @@ plainto_tsquery('simple', $6)
       )
     order by score desc, updated_at desc
-    limit ${limit}
-  `;
+    limit $7`,
+    [
+      scope.namespace,
+      scope.tenantId,
+      scope.userId,
+      scope.projectId,
+      `%${query}%`,
+      query,
+      limit
+    ]
+  );
   return rows.map((row) => ({ ...mapItem(row), score: Number(row.score) }));
 }
 
@@ -112,35 +130,45 @@ export async function proposeMemory(
   }
 ): Promise<MemoryItem> {
   await ensureSchema();
-  const sql = database();
+  const sql = await database();
   const id = randomUUID();
-  const rows = await sql`
-    insert into eve_memory_items
+  const rows = await sql.query(
+    `insert into eve_memory_items
       (id, namespace, tenant_id, user_id, project_id, kind, content, sensitivity,
        status, source_session_id, source_event_id)
-    values
-      (${id}, ${scope.namespace}, ${scope.tenantId}, ${scope.userId}, ${scope.projectId},
-       ${input.kind}, ${input.content}, ${input.sensitivity}, 'proposed',
-       ${input.sourceSessionId}, ${input.sourceEventId ?? null})
-    returning *
-  `;
+    values ($1, $2, $3, $4, $5, $6, $7, $8, 'proposed', $9, $10)
+    returning *`,
+    [
+      id,
+      scope.namespace,
+      scope.tenantId,
+      scope.userId,
+      scope.projectId,
+      input.kind,
+      input.content,
+      input.sensitivity,
+      input.sourceSessionId,
+      input.sourceEventId ?? null
+    ]
+  );
   return mapItem(rows[0]);
 }
 
 export async function confirmMemory(scope: MemoryScope, id: string): Promise<MemoryItem | null> {
   await ensureSchema();
-  const sql = database();
-  const rows = await sql`
-    update eve_memory_items
+  const sql = await database();
+  const rows = await sql.query(
+    `update eve_memory_items
     set status = 'confirmed', updated_at = now()
-    where id = ${id}
-      and namespace = ${scope.namespace}
-      and tenant_id = ${scope.tenantId}
-      and user_id = ${scope.userId}
-      and project_id = ${scope.projectId}
+    where id = $1
+      and namespace = $2
+      and tenant_id = $3
+      and user_id = $4
+      and project_id = $5
       and status = 'proposed'
-    returning *
-  `;
+    returning *`,
+    [id, scope.namespace, scope.tenantId, scope.userId, scope.projectId]
+  );
   return rows.length === 1 ? mapItem(rows[0]) : null;
 }
 
@@ -149,73 +177,92 @@ export async function correctMemory(
   input: { id: string; content: string; sourceSessionId: string; sourceEventId?: string }
 ): Promise<{ previous: MemoryItem; replacement: MemoryItem } | null> {
   await ensureSchema();
-  const sql = database();
-  return await sql.begin(async (tx) => {
-    const previousRows = await tx`
-      select * from eve_memory_items
-      where id = ${input.id}
-        and namespace = ${scope.namespace}
-        and tenant_id = ${scope.tenantId}
-        and user_id = ${scope.userId}
-        and project_id = ${scope.projectId}
-        and status = 'confirmed'
-      for update
-    `;
-    if (previousRows.length !== 1) return null;
+  const sql = await database();
+  return await sql.transaction(async (tx) => correctMemoryInTransaction(tx, scope, input));
+}
 
-    const previous = mapItem(previousRows[0]);
-    const replacementId = randomUUID();
-    const replacementRows = await tx`
-      insert into eve_memory_items
-        (id, namespace, tenant_id, user_id, project_id, kind, content, sensitivity,
-         status, source_session_id, source_event_id)
-      values
-        (${replacementId}, ${scope.namespace}, ${scope.tenantId}, ${scope.userId},
-         ${scope.projectId}, ${previous.kind}, ${input.content}, ${previous.sensitivity},
-         'confirmed', ${input.sourceSessionId}, ${input.sourceEventId ?? null})
-      returning *
-    `;
-    await tx`
-      update eve_memory_items
-      set status = 'superseded', superseded_by = ${replacementId}, updated_at = now()
-      where id = ${previous.id}
-    `;
-    return { previous, replacement: mapItem(replacementRows[0]) };
-  });
+async function correctMemoryInTransaction(
+  tx: MemoryDatabase,
+  scope: MemoryScope,
+  input: { id: string; content: string; sourceSessionId: string; sourceEventId?: string }
+): Promise<{ previous: MemoryItem; replacement: MemoryItem } | null> {
+  const previousRows = await tx.query(
+    `select * from eve_memory_items
+    where id = $1
+      and namespace = $2
+      and tenant_id = $3
+      and user_id = $4
+      and project_id = $5
+      and status = 'confirmed'
+    for update`,
+    [input.id, scope.namespace, scope.tenantId, scope.userId, scope.projectId]
+  );
+  if (previousRows.length !== 1) return null;
+
+  const previous = mapItem(previousRows[0]);
+  const replacementId = randomUUID();
+  const replacementRows = await tx.query(
+    `insert into eve_memory_items
+      (id, namespace, tenant_id, user_id, project_id, kind, content, sensitivity,
+       status, source_session_id, source_event_id)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, 'confirmed', $9, $10)
+    returning *`,
+    [
+      replacementId,
+      scope.namespace,
+      scope.tenantId,
+      scope.userId,
+      scope.projectId,
+      previous.kind,
+      input.content,
+      previous.sensitivity,
+      input.sourceSessionId,
+      input.sourceEventId ?? null
+    ]
+  );
+  await tx.query(
+    `update eve_memory_items
+    set status = 'superseded', superseded_by = $1, updated_at = now()
+    where id = $2`,
+    [replacementId, previous.id]
+  );
+  return { previous, replacement: mapItem(replacementRows[0]) };
 }
 
 export async function forgetMemory(scope: MemoryScope, id: string): Promise<boolean> {
   await ensureSchema();
-  const sql = database();
-  const rows = await sql`
-    update eve_memory_items
+  const sql = await database();
+  const rows = await sql.query(
+    `update eve_memory_items
     set status = 'deleted', content = '[deleted]', updated_at = now()
-    where id = ${id}
-      and namespace = ${scope.namespace}
-      and tenant_id = ${scope.tenantId}
-      and user_id = ${scope.userId}
-      and project_id = ${scope.projectId}
+    where id = $1
+      and namespace = $2
+      and tenant_id = $3
+      and user_id = $4
+      and project_id = $5
       and status in ('proposed', 'confirmed')
-    returning id
-  `;
+    returning id`,
+    [id, scope.namespace, scope.tenantId, scope.userId, scope.projectId]
+  );
   return rows.length === 1;
 }
 
 export async function getMemorySource(scope: MemoryScope, id: string): Promise<unknown | null> {
   await ensureSchema();
-  const sql = database();
-  const rows = await sql`
-    select
+  const sql = await database();
+  const rows = await sql.query(
+    `select
       m.id, m.kind, m.content, m.status, m.source_session_id, m.source_event_id,
       e.event_type, e.event_at, e.event_data, e.truncated
     from eve_memory_items m
     left join eve_memory_events e on e.event_id = m.source_event_id
-    where m.id = ${id}
-      and m.namespace = ${scope.namespace}
-      and m.tenant_id = ${scope.tenantId}
-      and m.user_id = ${scope.userId}
-      and m.project_id = ${scope.projectId}
-    limit 1
-  `;
+    where m.id = $1
+      and m.namespace = $2
+      and m.tenant_id = $3
+      and m.user_id = $4
+      and m.project_id = $5
+    limit 1`,
+    [id, scope.namespace, scope.tenantId, scope.userId, scope.projectId]
+  );
   return rows.length === 1 ? rows[0] : null;
 }
