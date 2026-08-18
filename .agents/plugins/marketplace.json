@@ -1,0 +1,20 @@
+{
+  "name": "eve-memory-agents",
+  "interface": {
+    "displayName": "eve Memory Agents"
+  },
+  "plugins": [
+    {
+      "name": "eve-memory-agent-builder",
+      "source": {
+        "source": "local",
+        "path": "./plugins/eve-memory-agent-builder"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

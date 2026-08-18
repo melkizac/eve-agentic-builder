@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create eve Memory Agent"
+  short_description: "Create an eve agent with durable memory"
+  default_prompt: "Use $create-eve-memory-agent to build a new memory-enabled eve agent."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add Memory to eve Agent"
+  short_description: "Integrate durable memory into an eve agent"
+  default_prompt: "Use $add-memory-to-eve-agent to add durable memory to this eve project."
